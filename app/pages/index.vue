@@ -13,200 +13,65 @@ const table = useTemplateRef('table')
 const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
 
-type Payment = {
-  id: string
-  date: string
-  status: 'paid' | 'failed' | 'refunded'
-  email: string
-  amount: number
+
+type Product = {
+  title: string
+  description: string
+  price: number
+  rating: number
+  brand: string
+  category: string
+  thumbnail: string
 }
 
-const data = ref<Payment[]>([
-  {
-    id: '4600',
-    date: '2024-03-11T15:30:00',
-    status: 'paid',
-    email: 'james.anderson@example.com',
-    amount: 594
-  },
-  {
-    id: '4599',
-    date: '2024-03-11T10:10:00',
-    status: 'failed',
-    email: 'mia.white@example.com',
-    amount: 276
-  },
-  {
-    id: '4598',
-    date: '2024-03-11T08:50:00',
-    status: 'refunded',
-    email: 'william.brown@example.com',
-    amount: 315
-  },
-  {
-    id: '4597',
-    date: '2024-03-10T19:45:00',
-    status: 'paid',
-    email: 'emma.davis@example.com',
-    amount: 529
-  },
-  {
-    id: '4596',
-    date: '2024-03-10T15:55:00',
-    status: 'paid',
-    email: 'ethan.harris@example.com',
-    amount: 639
-  },
-  {
-    id: '4595',
-    date: '2024-03-10T13:20:00',
-    status: 'paid',
-    email: 'sophia.miller@example.com',
-    amount: 428
-  },
-  {
-    id: '4594',
-    date: '2024-03-10T11:05:00',
-    status: 'paid',
-    email: 'noah.wilson@example.com',
-    amount: 673
-  },
-  {
-    id: '4593',
-    date: '2024-03-09T22:15:00',
-    status: 'paid',
-    email: 'olivia.jones@example.com',
-    amount: 382
-  },
-  {
-    id: '4592',
-    date: '2024-03-09T20:30:00',
-    status: 'paid',
-    email: 'liam.taylor@example.com',
-    amount: 547
-  },
-  {
-    id: '4591',
-    date: '2024-03-09T18:45:00',
-    status: 'paid',
-    email: 'ava.thomas@example.com',
-    amount: 291
-  },
-  {
-    id: '4590',
-    date: '2024-03-09T16:20:00',
-    status: 'refunded',
-    email: 'lucas.martin@example.com',
-    amount: 624
-  },
-  {
-    id: '4589',
-    date: '2024-03-09T14:10:00',
-    status: 'refunded',
-    email: 'isabella.clark@example.com',
-    amount: 438
-  },
-  {
-    id: '4588',
-    date: '2024-03-09T12:05:00',
-    status: 'refunded',
-    email: 'mason.rodriguez@example.com',
-    amount: 583
-  },
-  {
-    id: '4587',
-    date: '2024-03-09T10:30:00',
-    status: 'refunded',
-    email: 'sophia.lee@example.com',
-    amount: 347
-  },
-  {
-    id: '4586',
-    date: '2024-03-09T08:15:00',
-    status: 'failed',
-    email: 'ethan.walker@example.com',
-    amount: 692
-  },
-  {
-    id: '4585',
-    date: '2024-03-08T23:40:00',
-    status: 'failed',
-    email: 'amelia.hall@example.com',
-    amount: 419
-  },
-  {
-    id: '4584',
-    date: '2024-03-08T21:25:00',
-    status: 'failed',
-    email: 'oliver.young@example.com',
-    amount: 563
-  },
-  {
-    id: '4583',
-    date: '2024-03-08T19:50:00',
-    status: 'refunded',
-    email: 'aria.king@example.com',
-    amount: 328
-  },
-  {
-    id: '4582',
-    date: '2024-03-08T17:35:00',
-    status: 'refunded',
-    email: 'henry.wright@example.com',
-    amount: 647
-  },
-  {
-    id: '4581',
-    date: '2024-03-08T15:20:00',
-    status: 'failed',
-    email: 'luna.lopez@example.com',
-    amount: 482
-  }
-])
+const { data, status } = await useFetch<{ products: any[] }>(
+    'https://dummyjson.com/products',
+    {
+      key: 'table-products',
+      lazy: true
+    }
+)
 
-const columns: TableColumn<Payment>[] = [
+const products = computed<Product[]>(() => {
+  return (data.value?.products ?? []).map((product) => ({
+    title: product.title,
+    description: product.description,
+    price: product.price,
+    rating: product.rating,
+    brand: product.brand,
+    category: product.category,
+    thumbnail: product.thumbnail
+  }))
+})
+
+const columns: TableColumn<Product>[] = [
   {
-    accessorKey: 'id',
-    header: '#',
-    cell: ({ row }) => `#${row.getValue('id')}`
-  },
-  {
-    accessorKey: 'date',
-    header: 'Date',
+    accessorKey: 'title',
+    header: 'Назва',
     cell: ({ row }) => {
-      return new Date(row.getValue('date')).toLocaleString('en-US', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      })
+      return h('span', {
+        class: 'font-bold'
+      }, row.getValue('title'))
     }
   },
   {
-    accessorKey: 'status',
-    header: 'Status',
+    accessorKey: 'description',
+    header: 'Опис',
     cell: ({ row }) => {
-      const color = {
-        paid: 'success' as const,
-        failed: 'error' as const,
-        refunded: 'neutral' as const
-      }[row.getValue('status') as string]
-
-      return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
-          row.getValue('status')
-      )
+      return h('div', {
+        class: 'max-w-[85%] whitespace-normal break-words'
+      }, row.getValue('description'))
     }
   },
   {
-    accessorKey: 'email',
+    accessorKey: 'price',
     header: ({ column }) => {
       const isSorted = column.getIsSorted()
 
       return h(UButton, {
         color: 'neutral',
         variant: 'ghost',
-        label: 'Email',
+        label: 'Ціна',
         icon: isSorted
             ? isSorted === 'asc'
                 ? 'i-lucide-arrow-up-narrow-wide'
@@ -215,73 +80,89 @@ const columns: TableColumn<Payment>[] = [
         class: '-mx-2.5',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
       })
+    },
+    cell: ({ row }) => {
+      const price = row.getValue('price')
+      return `$${Number(price)}`
     }
   },
   {
-    accessorKey: 'amount',
-    header: () => h('div', { class: 'text-right' }, 'Amount'),
+    accessorKey: 'rating',
+    header: 'Оцінка',
+    cell: ({row}) => {
+      const rating = parseFloat(row.getValue('rating'))
+      const color = rating < 4.5 ? 'error' : 'success'
+
+      return h(UBadge, {class: 'capitalize', variant: 'subtle', color}, () =>
+          rating
+      )
+    }
+  },
+  {
+    accessorKey: 'brand',
+    header: 'Бренд'
+  },
+  {
+    accessorKey: 'category',
+    header: 'Категорія'
+  },
+  {
+    accessorKey: 'thumbnail',
+    header: 'Фото',
     cell: ({ row }) => {
-      const amount = Number.parseFloat(row.getValue('amount'))
+      const url = row.getValue('thumbnail') as string
 
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'EUR'
-      }).format(amount)
-
-      return h('div', { class: 'text-right font-medium' }, formatted)
+      return h('img', {
+        src: url,
+        alt: 'Фото',
+        width: 100,
+        height: 100,
+        style: 'object-fit: cover; border-radius: 0.5rem;' // для гарного вигляду
+      })
     }
   }
 ]
 
-const sorting = ref([
-  {
-    id: 'email',
-    desc: false
-  }
-])
-
-const globalFilter = ref('45')
+const globalFilter = ref('')
 
 const pagination = ref({
   pageIndex: 0,
-  pageSize: 5
+  pageSize: 4
 })
 
 </script>
 
 <template>
+  <div class="p-6">
+    <h2 class="text-2xl font-bold text-green-600 text-center mb-4">
+      Список продуктів
+    </h2>
 
-  <UHeading class="text-primary">
-    Список продуктів
-  </UHeading>
+    <div class="flex flex-col flex-1 w-full">
+      <div class="flex px-4 py-3.5 border-b border-accented">
+        <UInput v-model="globalFilter" class="w-sm" placeholder="Фільтр..." />
+      </div>
 
-  <div class="flex flex-col flex-1 w-full">
-    <div class="flex px-4 py-3.5 border-b border-accented">
-      <UInput v-model="globalFilter" class="max-w-sm" placeholder="Filter..." />
+      <UTable
+          ref= "table"
+          v-model:pagination="pagination"
+          v-model:global-filter="globalFilter"
+          :data="products"
+          :columns="columns"
+          :loading="status === 'pending'"
+          :pagination-options="{
+          getPaginationRowModel: getPaginationRowModel()
+          }"
+          class="flex-1" />
+
+      <div class="flex justify-center border-t border-default pt-4">
+        <UPagination
+            :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+            :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+            :total="table?.tableApi?.getFilteredRowModel().rows.length"
+            @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
+        />
+      </div>
     </div>
-
-    <UTable
-        ref="table"
-        v-model:pagination="pagination"
-        v-model:global-filter="globalFilter"
-        v-model:sorting="sorting"
-        :data="data"
-        :columns="columns"
-        :pagination-options="{
-        getPaginationRowModel: getPaginationRowModel()
-      }"
-        class="flex-1"
-    />
-
-    <div class="flex justify-center border-t border-default pt-4">
-      <UPagination
-          :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-          :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-          :total="table?.tableApi?.getFilteredRowModel().rows.length"
-          @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
-      />
-    </div>
-
   </div>
-
 </template>
